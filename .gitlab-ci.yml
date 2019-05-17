@@ -1,0 +1,22 @@
+image: docker:latest
+
+services:
+- docker:dind
+
+variables:
+  DOCKER_DRIVER: overlay
+  IMAGE_LATEST_TAG: ${CI_REGISTRY_IMAGE}/gcloud:latest
+
+stages:
+- build
+
+build:
+  stage: build
+  script:
+  - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
+  - docker build -t ${IMAGE_LATEST_TAG} .
+  - docker push ${IMAGE_LATEST_TAG}
+  only:
+  - schedules
+  retry: 2
+
