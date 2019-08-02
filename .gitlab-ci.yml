@@ -17,7 +17,7 @@ build:
   - docker build -t ${IMAGE_LATEST_TAG} .
   - docker push ${IMAGE_LATEST_TAG}
   - docker run --rm --entrypoint cat ${IMAGE_LATEST_TAG} /google-cloud-sdk/VERSION > version
-  - docker pull ${DOCKER_ID}/gcloud:$(cat version) || export docker_hub.sh
+  - docker pull ${DOCKER_ID}/gcloud:$(cat version) || source docker_hub.sh
   only:
   - schedules
   retry: 2
