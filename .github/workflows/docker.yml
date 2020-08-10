@@ -1,0 +1,35 @@
+name: Update
+on:
+  push:
+    branches: [ master ]
+  schedule:
+    - cron: "0 0 * * 0"
+jobs:
+  update:
+    name: Update
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Download gcloud
+        id: download
+        run: |
+          wget https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz
+          tar xzvf google-cloud-sdk.tar.gz
+          echo "::set-output name=version::$(cat google-cloud-sdk/VERSION)"
+      - name: Check version
+        id: check
+        continue-on-error: true
+        env:
+          DOCKER_ID: ${{ secrets.DOCKER_ID }}
+          VERSION: ${{ steps.download.outputs.version }}
+        run: docker pull ${DOCKER_ID}/gcloud:${VERSION}
+      - name: Build & push
+        if: ${{ steps.check.outcome == 'failure' }}
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ secrets.DOCKER_ID }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+          repository: ${{ secrets.DOCKER_ID }}/gcloud
+          tags: ${{ steps.download.outputs.version }},latest
+
